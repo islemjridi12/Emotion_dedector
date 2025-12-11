@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/391292811735820099/30cf73228a9c4d8aab5bd42ae2dc17b5/artifacts
+end_time: 1764175447004
+entry_point_name: ''
+experiment_id: '391292811735820099'
+lifecycle_stage: active
+run_id: 30cf73228a9c4d8aab5bd42ae2dc17b5
+run_name: incongruous-flea-820
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1764175446709
+status: 3
+tags: []
+user_id: iji

@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/391292811735820099/a22f15821ce5449d99cff66ad924abe2/artifacts
+end_time: 1764172735395
+entry_point_name: ''
+experiment_id: '391292811735820099'
+lifecycle_stage: active
+run_id: a22f15821ce5449d99cff66ad924abe2
+run_name: adorable-finch-13
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1764172735179
+status: 3
+tags: []
+user_id: iji

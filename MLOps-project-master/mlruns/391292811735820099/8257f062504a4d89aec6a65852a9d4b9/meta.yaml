@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/391292811735820099/8257f062504a4d89aec6a65852a9d4b9/artifacts
+end_time: 1764172714456
+entry_point_name: ''
+experiment_id: '391292811735820099'
+lifecycle_stage: active
+run_id: 8257f062504a4d89aec6a65852a9d4b9
+run_name: amusing-stork-14
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1764172713980
+status: 3
+tags: []
+user_id: iji

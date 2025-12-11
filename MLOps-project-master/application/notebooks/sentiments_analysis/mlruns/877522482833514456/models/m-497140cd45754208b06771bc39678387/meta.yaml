@@ -1,0 +1,10 @@
+artifact_location: file:///c:/Users/iji/Documents/MLOps-project-master/MLOps-project-master/application/notebooks/sentiments_analysis/mlruns/877522482833514456/models/m-497140cd45754208b06771bc39678387/artifacts
+creation_timestamp: 1765450228737
+experiment_id: '877522482833514456'
+last_updated_timestamp: 1765450240885
+model_id: m-497140cd45754208b06771bc39678387
+model_type: null
+name: emotion_classifier_pipe_lr
+source_run_id: 27e6bb0508c9410a949b375300e3dbb4
+status: 2
+status_message: null

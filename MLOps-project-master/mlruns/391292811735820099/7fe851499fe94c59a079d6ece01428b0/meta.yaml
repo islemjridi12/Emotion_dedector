@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/391292811735820099/7fe851499fe94c59a079d6ece01428b0/artifacts
+end_time: 1764175188173
+entry_point_name: ''
+experiment_id: '391292811735820099'
+lifecycle_stage: active
+run_id: 7fe851499fe94c59a079d6ece01428b0
+run_name: valuable-dolphin-278
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1764175187831
+status: 3
+tags: []
+user_id: iji

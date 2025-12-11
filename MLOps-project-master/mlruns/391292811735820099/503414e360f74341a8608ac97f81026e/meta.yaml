@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/391292811735820099/503414e360f74341a8608ac97f81026e/artifacts
+end_time: 1764175164934
+entry_point_name: ''
+experiment_id: '391292811735820099'
+lifecycle_stage: active
+run_id: 503414e360f74341a8608ac97f81026e
+run_name: carefree-gnat-926
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1764175164606
+status: 3
+tags: []
+user_id: iji

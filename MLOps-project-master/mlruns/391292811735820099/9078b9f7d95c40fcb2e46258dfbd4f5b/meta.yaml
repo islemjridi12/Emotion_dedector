@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/391292811735820099/9078b9f7d95c40fcb2e46258dfbd4f5b/artifacts
+end_time: 1764174224020
+entry_point_name: ''
+experiment_id: '391292811735820099'
+lifecycle_stage: active
+run_id: 9078b9f7d95c40fcb2e46258dfbd4f5b
+run_name: selective-cow-665
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1764174204287
+status: 3
+tags: []
+user_id: iji

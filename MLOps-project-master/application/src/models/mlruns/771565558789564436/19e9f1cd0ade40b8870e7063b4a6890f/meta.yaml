@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Users/iji/Documents/MLOps-project-master/MLOps-project-master/application/src/models/mlruns/771565558789564436/19e9f1cd0ade40b8870e7063b4a6890f/artifacts
+end_time: 1765458115248
+entry_point_name: ''
+experiment_id: '771565558789564436'
+lifecycle_stage: active
+run_id: 19e9f1cd0ade40b8870e7063b4a6890f
+run_name: useful-mouse-566
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1765458103283
+status: 3
+tags: []
+user_id: iji

@@ -1,0 +1,6 @@
+artifact_location: file:///C:/Users/iji/Documents/MLOps-project-master/MLOps-project-master/application/src/models/mlruns/771565558789564436
+creation_time: 1765457313558
+experiment_id: '771565558789564436'
+last_update_time: 1765457313558
+lifecycle_stage: active
+name: emotion_detection_experiment

@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/391292811735820099/d2a88d0439eb47dbb1d18acb9f46edf5/artifacts
+end_time: 1764175187580
+entry_point_name: ''
+experiment_id: '391292811735820099'
+lifecycle_stage: active
+run_id: d2a88d0439eb47dbb1d18acb9f46edf5
+run_name: smiling-seal-76
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1764175165028
+status: 3
+tags: []
+user_id: iji

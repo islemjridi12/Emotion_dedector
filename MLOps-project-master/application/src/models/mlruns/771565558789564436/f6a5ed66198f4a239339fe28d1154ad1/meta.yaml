@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Users/iji/Documents/MLOps-project-master/MLOps-project-master/application/src/models/mlruns/771565558789564436/f6a5ed66198f4a239339fe28d1154ad1/artifacts
+end_time: 1765457318945
+entry_point_name: ''
+experiment_id: '771565558789564436'
+lifecycle_stage: active
+run_id: f6a5ed66198f4a239339fe28d1154ad1
+run_name: hilarious-lark-755
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1765457318781
+status: 3
+tags: []
+user_id: iji

@@ -1,0 +1,14 @@
+artifact_uri: file:///c:/Users/iji/Documents/MLOps-project-master/MLOps-project-master/application/notebooks/sentiments_analysis/mlruns/877522482833514456/50111be6259d4a6ab2d7b78e2e89faef/artifacts
+end_time: 1765450225144
+entry_point_name: ''
+experiment_id: '877522482833514456'
+lifecycle_stage: active
+run_id: 50111be6259d4a6ab2d7b78e2e89faef
+run_name: likeable-swan-688
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1765450177360
+status: 3
+tags: []
+user_id: iji
