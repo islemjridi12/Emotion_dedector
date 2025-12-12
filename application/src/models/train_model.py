@@ -3,120 +3,162 @@
 
 """
 Emotion Detection in Text
-A pipeline to train and evaluate a Logistic Regression model for emotion detection,
-with metrics and artifacts logged to an external MLflow server.
+Training and evaluation pipeline using Logistic Regression.
+Metrics and artifacts are logged to MLflow.
 """
 
+# =========================
 # Imports
+# =========================
+from pathlib import Path
 import os
 import pandas as pd
 import numpy as np
 import neattext.functions as nfx
 import seaborn as sns
 import matplotlib.pyplot as plt
+
 from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, ConfusionMatrixDisplay
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    ConfusionMatrixDisplay,
+)
+
 import joblib
 import mlflow
 import mlflow.sklearn
 
-# Set MLflow Tracking URI and Experiment
-# MLFLOW_TRACKING_URI = "http://localhost:5000" 
-MLFLOW_EXPERIMENT_NAME = "emotion_detection_experiment"
 
-# mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+# =========================
+# MLflow configuration
+# =========================
+MLFLOW_EXPERIMENT_NAME = "emotion_detection_experiment"
 mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
 
-# Load Dataset
-DATA_PATH = os.path.join("..", "..", "data", "cleaned_dataset.csv")
+
+# =========================
+# Paths (ROBUSTE CI)
+# =========================
+# application/
+BASE_DIR = Path(__file__).resolve().parents[2]
+
+DATA_PATH = BASE_DIR / "data" / "cleaned_dataset.csv"
+MODEL_PATH = BASE_DIR / "src" / "models" / "emotion_classifier_pipe_lr.pkl"
+
+print(f"[INFO] Loading dataset from: {DATA_PATH}")
+
+
+# =========================
+# Load dataset
+# =========================
 df = pd.read_csv(DATA_PATH, encoding="utf-8")
 
-# Data Exploration and Visualization
+# =========================
+# Data exploration
+# =========================
 sns.countplot(x="sentiment", data=df)
+plt.tight_layout()
 plt.savefig("sentiment_distribution.png")
 mlflow.log_artifact("sentiment_distribution.png")
+plt.close()
 
-# Clean Dataset
-df["text"] = df["text"].fillna("").astype(str)  # Handle missing values
-df["Clean_Text"] = df["text"].apply(nfx.remove_userhandles).apply(nfx.remove_stopwords)
 
-# Features and Labels
-Xfeatures = df["Clean_Text"]
-ylabels = df["sentiment"]
+# =========================
+# Data cleaning
+# =========================
+df["text"] = df["text"].fillna("").astype(str)
+df["clean_text"] = (
+    df["text"]
+    .apply(nfx.remove_userhandles)
+    .apply(nfx.remove_stopwords)
+)
 
-# Split Data
-x_train, x_test, y_train, y_test = train_test_split(Xfeatures, ylabels, test_size=0.3, random_state=42)
+X = df["clean_text"]
+y = df["sentiment"]
 
-# Build Pipeline
-pipe_lr = Pipeline(steps=[("cv", CountVectorizer()), ("lr", LogisticRegression(max_iter=100, solver="lbfgs"))])
 
-# End any active run before starting a new one
+# =========================
+# Train / test split
+# =========================
+x_train, x_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42
+)
+
+
+# =========================
+# Pipeline
+# =========================
+pipe_lr = Pipeline(
+    steps=[
+        ("cv", CountVectorizer()),
+        ("lr", LogisticRegression(max_iter=100, solver="lbfgs")),
+    ]
+)
+
+
+# =========================
+# MLflow run
+# =========================
 if mlflow.active_run():
-    print(f"Ending active run: {mlflow.active_run().info.run_id}")
     mlflow.end_run()
 
-# Start an MLflow Run
 with mlflow.start_run():
-    # Train the Model
+    # ---- Train
     pipe_lr.fit(x_train, y_train)
 
-    # Log Model Parameters
-    mlflow.log_param("model_type", "Logistic Regression")
+    # ---- Params
+    mlflow.log_param("model_type", "LogisticRegression")
     mlflow.log_param("vectorizer", "CountVectorizer")
-    mlflow.log_param("train_test_split", "70:30")
-    mlflow.log_param("vocab_size", len(pipe_lr["cv"].vocabulary_))
     mlflow.log_param("max_iter", pipe_lr["lr"].max_iter)
     mlflow.log_param("solver", pipe_lr["lr"].solver)
+    mlflow.log_param("train_test_split", "70/30")
+    mlflow.log_param("vocab_size", len(pipe_lr["cv"].vocabulary_))
 
-    # Evaluate the Model
-    predictions = pipe_lr.predict(x_test)
-    accuracy = accuracy_score(y_test, predictions)
-    precision = precision_score(y_test, predictions, average="weighted")
-    recall = recall_score(y_test, predictions, average="weighted")
-    f1 = f1_score(y_test, predictions, average="weighted")
+    # ---- Evaluation
+    preds = pipe_lr.predict(x_test)
 
-    # Log Metrics
+    accuracy = accuracy_score(y_test, preds)
+    precision = precision_score(y_test, preds, average="weighted")
+    recall = recall_score(y_test, preds, average="weighted")
+    f1 = f1_score(y_test, preds, average="weighted")
+
     mlflow.log_metric("accuracy", accuracy)
     mlflow.log_metric("precision", precision)
     mlflow.log_metric("recall", recall)
     mlflow.log_metric("f1_score", f1)
 
-    # Log Confusion Matrix
-    cm_display = ConfusionMatrixDisplay.from_estimator(pipe_lr, x_test, y_test)
-    cm_display.figure_.savefig("confusion_matrix.png")
+    # ---- Confusion matrix
+    cm = ConfusionMatrixDisplay.from_estimator(pipe_lr, x_test, y_test)
+    cm.figure_.tight_layout()
+    cm.figure_.savefig("confusion_matrix.png")
     mlflow.log_artifact("confusion_matrix.png")
+    plt.close()
 
-    # Log Cleaned Dataset
-    df.to_csv("cleaned_dataset.csv", index=False)
-    mlflow.log_artifact("cleaned_dataset.csv")
+    # ---- Save model (ONE source of truth)
+    MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+    joblib.dump(pipe_lr, MODEL_PATH)
 
-    # Log Model
-    mlflow.sklearn.log_model(pipe_lr, artifact_path="emotion_classifier_pipe_lr")
+    mlflow.log_artifact(MODEL_PATH)
 
-    # Save Model Locally and Log as an Artifact
-    model_filepath = "models/emotion_classifier_pipe_lr.pkl"
-    os.makedirs(os.path.dirname(model_filepath), exist_ok=True)
-    joblib.dump(pipe_lr, model_filepath)
-    mlflow.log_artifact(model_filepath)
+    # ---- Log dataset snapshot
+    df.to_csv("cleaned_dataset_snapshot.csv", index=False)
+    mlflow.log_artifact("cleaned_dataset_snapshot.csv")
 
-    print(f"Logged model with accuracy: {accuracy:.2f}")
+    print(f"[SUCCESS] Model trained | accuracy={accuracy:.4f}")
 
-# Test Prediction
+
+# =========================
+# Test prediction
+# =========================
 test_text = "This book was so interesting it made me happy"
-test_prediction = pipe_lr.predict([test_text])
-print(f"Prediction for '{test_text}': {test_prediction[0]}")
+prediction = pipe_lr.predict([test_text])[0]
+confidence = np.max(pipe_lr.predict_proba([test_text]))
 
-# Log Prediction Probability
-proba = pipe_lr.predict_proba([test_text])
-mlflow.log_metric("avg_prediction_confidence", np.max(proba))
-
-# Save Model Pipeline Locally
-pipeline_path = "../../src/models/emotion_classifier_pipe_lr.pkl"
-os.makedirs(os.path.dirname(pipeline_path), exist_ok=True)
-with open(pipeline_path, "wb") as pipeline_file:
-    joblib.dump(pipe_lr, pipeline_file)
-
-print("Pipeline saved successfully.")
+print(f"[TEST] Text: {test_text}")
+print(f"[TEST] Prediction: {prediction} (confidence={confidence:.2f})")
