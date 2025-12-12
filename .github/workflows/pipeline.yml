@@ -26,7 +26,7 @@ jobs:
         git config --global user.name "GitHub Actions"
 
     # --------------------------------------------------
-    # 2. Use system Python (self-hosted Windows)
+    # 2. Check Python (system Python)
     # --------------------------------------------------
     - name: Check Python version
       shell: powershell
@@ -109,11 +109,16 @@ jobs:
         dvc push
 
     # --------------------------------------------------
-    # 9. Build Docker image
+    # 9. Build Docker image (CORRIGÉ)
     # --------------------------------------------------
     - name: Build Docker image
+      working-directory: application
       shell: powershell
-      run: docker build -t emotion-app .
+      run: |
+        docker build `
+          -t emotion-app `
+          -f docker/Dockerfile `
+          .
 
     # --------------------------------------------------
     # 10. Push Docker image to Nexus
