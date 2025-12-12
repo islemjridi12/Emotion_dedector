@@ -17,17 +17,19 @@ jobs:
       uses: actions/checkout@v3
 
     # --------------------------------------------------
-    # 1.1 Git identity (OBLIGATOIRE)
+    # 1.1 Configure Git identity (OBLIGATOIRE)
     # --------------------------------------------------
     - name: Configure git identity
+      shell: powershell
       run: |
         git config --global user.email "actions@github.com"
         git config --global user.name "GitHub Actions"
 
     # --------------------------------------------------
-    # 2. Python setup
+    # 2. Use system Python (self-hosted Windows)
     # --------------------------------------------------
     - name: Check Python version
+      shell: powershell
       run: python --version
 
     # --------------------------------------------------
@@ -35,8 +37,9 @@ jobs:
     # --------------------------------------------------
     - name: Install dependencies
       working-directory: application
+      shell: powershell
       run: |
-        pip install --upgrade pip
+        python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install dvc[s3] mlflow
 
@@ -45,6 +48,7 @@ jobs:
     # --------------------------------------------------
     - name: Configure DVC MinIO (local)
       working-directory: application
+      shell: powershell
       run: |
         dvc remote modify minio endpointurl http://localhost:9000
         dvc remote modify minio access_key_id "${{ secrets.MINIO_ACCESS_KEY }}"
@@ -56,20 +60,27 @@ jobs:
     # --------------------------------------------------
     - name: DVC pull
       working-directory: application
+      shell: powershell
       run: dvc pull
 
     # --------------------------------------------------
-    # 6. Run preprocessing
+    # 6. Run preprocessing + track cleaned dataset
     # --------------------------------------------------
     - name: Run preprocessing
       working-directory: application
+      shell: powershell
       run: |
         python src/data_ingestion/youtube_comments/main.py
         python src/scripts/main.py
 
         dvc add data/cleaned_dataset.csv
         git add data/cleaned_dataset.csv.dvc
-        git commit -m "Update cleaned dataset" || echo "No dataset changes"
+
+        git commit -m "Update cleaned dataset"
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host "No dataset changes"
+        }
+
         dvc push
 
     # --------------------------------------------------
@@ -77,36 +88,45 @@ jobs:
     # --------------------------------------------------
     - name: Train model
       working-directory: application
+      shell: powershell
       run: python src/models/train_model.py
 
     # --------------------------------------------------
     # 8. Track trained model with DVC
     # --------------------------------------------------
-    - name: Track model with DVC
+    - name: Track trained model with DVC
       working-directory: application
+      shell: powershell
       run: |
         dvc add src/models/emotion_classifier_pipe_lr.pkl
         git add src/models/emotion_classifier_pipe_lr.pkl.dvc
-        git commit -m "Update trained model" || echo "No model changes"
+
+        git commit -m "Update trained model"
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host "No model changes"
+        }
+
         dvc push
 
     # --------------------------------------------------
     # 9. Build Docker image
     # --------------------------------------------------
     - name: Build Docker image
+      shell: powershell
       run: docker build -t emotion-app .
 
     # --------------------------------------------------
     # 10. Push Docker image to Nexus
     # --------------------------------------------------
     - name: Push Docker image to Nexus
+      shell: powershell
       run: |
-        docker login ${{ secrets.NEXUS_HOST }} \
-          -u ${{ secrets.NEXUS_USER }} \
+        docker login ${{ secrets.NEXUS_HOST }} `
+          -u ${{ secrets.NEXUS_USER }} `
           -p ${{ secrets.NEXUS_PASSWORD }}
 
-        docker tag emotion-app \
+        docker tag emotion-app `
           ${{ secrets.NEXUS_HOST }}/emotion-app:latest
 
-        docker push \
+        docker push `
           ${{ secrets.NEXUS_HOST }}/emotion-app:latest
