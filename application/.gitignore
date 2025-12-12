@@ -23,3 +23,5 @@ google_services.json
 mlruns/
 **/mlruns/
 
+# GitHub Actions self-hosted runner
+actions-runner/
