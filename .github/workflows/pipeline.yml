@@ -49,6 +49,7 @@ jobs:
     # 5. Pull dataset from DVC
     # --------------------------------------------------
     - name: DVC pull
+      working-directory: application
       run: dvc pull
 
     # --------------------------------------------------
