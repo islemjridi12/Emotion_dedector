@@ -18,3 +18,8 @@ google_services.json
 
 # macOS Specific Files
 .DS_Store
+
+# MLflow
+mlruns/
+**/mlruns/
+
