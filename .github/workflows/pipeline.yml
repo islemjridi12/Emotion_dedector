@@ -130,5 +130,5 @@ jobs:
           --username "${{ secrets.NEXUS_USER }}" `
           --password-stdin
 
-        docker tag emotion-app localhost:8091/emotion-app:latest
-        docker push localhost:8091/emotion-app:latest
+        docker tag emotion-app localhost:5000/emotion-app:latest
+        docker push localhost:5000/emotion-app:latest
