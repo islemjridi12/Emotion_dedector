@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/391292811735820099/78aed4158c01496e9e447c877fcb25b8/artifacts
+end_time: 1764177094992
+entry_point_name: ''
+experiment_id: '391292811735820099'
+lifecycle_stage: active
+run_id: 78aed4158c01496e9e447c877fcb25b8
+run_name: wistful-deer-44
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1764177094369
+status: 3
+tags: []
+user_id: iji

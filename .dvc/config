@@ -1,0 +1,10 @@
+[core]
+    remote = minio
+['remote "storage"']
+    url = gdrive://1pc5oHFn2tLPOszXyP9MYHIVb7BzOnaCj
+    gdrive_use_service_account = false
+['remote "minio"']
+    url = s3://dvc-storage
+    access_key_id = admin
+    secret_access_key = password123
+    endpointurl = http://localhost:9000

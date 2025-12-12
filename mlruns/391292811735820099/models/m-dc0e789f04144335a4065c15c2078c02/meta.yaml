@@ -1,0 +1,10 @@
+artifact_location: mlflow-artifacts:/391292811735820099/models/m-dc0e789f04144335a4065c15c2078c02/artifacts
+creation_timestamp: 1764175426821
+experiment_id: '391292811735820099'
+last_updated_timestamp: 1764175446425
+model_id: m-dc0e789f04144335a4065c15c2078c02
+model_type: ''
+name: emotion_classifier_pipe_lr
+source_run_id: 96b8ecf915b347a7b5d87abd1d15b618
+status: 2
+status_message: null

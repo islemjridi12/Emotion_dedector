@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/391292811735820099/59f830807be247519b6b234966f594c8/artifacts
+end_time: 1764172735045
+entry_point_name: ''
+experiment_id: '391292811735820099'
+lifecycle_stage: active
+run_id: 59f830807be247519b6b234966f594c8
+run_name: bittersweet-pug-857
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1764172714606
+status: 3
+tags: []
+user_id: iji

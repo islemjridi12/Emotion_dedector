@@ -1,0 +1,107 @@
+name: MLOps – Train, Build, Deploy
+
+on:
+  push:
+    branches: [ "master" ]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  train_and_deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # --------------------------------------------------
+    # 1. Checkout
+    # --------------------------------------------------
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # --------------------------------------------------
+    # 2. Python setup
+    # --------------------------------------------------
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    # --------------------------------------------------
+    # 3. Install dependencies
+    # --------------------------------------------------
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install dvc[s3] mlflow
+        pip install -r requirements.txt
+
+    # --------------------------------------------------
+    # 4. Configure DVC (MinIO)
+    # --------------------------------------------------
+    - name: Configure DVC MinIO
+      run: |
+        dvc remote modify minio endpointurl ${{ secrets.MINIO_ENDPOINT }}
+        dvc remote modify minio access_key_id ${{ secrets.MINIO_ACCESS_KEY }}
+        dvc remote modify minio secret_access_key ${{ secrets.MINIO_SECRET_KEY }}
+
+    # --------------------------------------------------
+    # 5. Pull dataset
+    # --------------------------------------------------
+    - name: DVC pull
+      run: dvc pull
+
+    # --------------------------------------------------
+    # 6. Train model
+    # --------------------------------------------------
+    - name: Train model
+      run: python src/models/train_model.py
+
+    # --------------------------------------------------
+    # 7. Track model with DVC
+    # --------------------------------------------------
+    - name: Track model with DVC
+      run: |
+        dvc add src/models/emotion_classifier_pipe_lr.pkl
+        git add src/models/emotion_classifier_pipe_lr.pkl.dvc
+        git commit -m "Update trained model" || echo "No changes"
+        dvc push
+
+    # --------------------------------------------------
+    # 8. Docker build
+    # --------------------------------------------------
+    - name: Build Docker image
+      run: |
+        docker build -t emotion-app .
+
+    # --------------------------------------------------
+    # 9. Push Docker image to Nexus
+    # --------------------------------------------------
+    - name: Push Docker image to Nexus
+      run: |
+        docker login ${{ secrets.NEXUS_HOST }} \
+          -u ${{ secrets.NEXUS_USER }} \
+          -p ${{ secrets.NEXUS_PASSWORD }}
+
+        docker tag emotion-app \
+          ${{ secrets.NEXUS_HOST }}/emotion-app:latest
+
+        docker push \
+          ${{ secrets.NEXUS_HOST }}/emotion-app:latest
+
+    # --------------------------------------------------
+    # 10. Deploy on server
+    # --------------------------------------------------
+    - name: Deploy on server
+      uses: appleboy/ssh-action@v0.1.9
+      with:
+        host: ${{ secrets.SERVER_IP }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SERVER_SSH_KEY }}
+        script: |
+          docker pull ${{ secrets.NEXUS_HOST }}/emotion-app:latest
+          docker stop emotion-app || true
+          docker rm emotion-app || true
+          docker run -d \
+            -p 8501:8501 \
+            --name emotion-app \
+            ${{ secrets.NEXUS_HOST }}/emotion-app:latest

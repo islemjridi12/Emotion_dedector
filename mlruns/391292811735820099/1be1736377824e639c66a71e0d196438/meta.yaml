@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/391292811735820099/1be1736377824e639c66a71e0d196438/artifacts
+end_time: 1764177094003
+entry_point_name: ''
+experiment_id: '391292811735820099'
+lifecycle_stage: active
+run_id: 1be1736377824e639c66a71e0d196438
+run_name: wistful-croc-536
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1764177063924
+status: 3
+tags: []
+user_id: iji

@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/391292811735820099/0eb034bc1b0b468fa3220f8c375bec46/artifacts
+end_time: 1764174204172
+entry_point_name: ''
+experiment_id: '391292811735820099'
+lifecycle_stage: active
+run_id: 0eb034bc1b0b468fa3220f8c375bec46
+run_name: nervous-fish-440
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1764174203622
+status: 3
+tags: []
+user_id: iji

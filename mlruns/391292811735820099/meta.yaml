@@ -1,0 +1,6 @@
+artifact_location: mlflow-artifacts:/391292811735820099
+creation_time: 1764172490072
+experiment_id: '391292811735820099'
+last_update_time: 1764172490072
+lifecycle_stage: active
+name: emotion_detection_experiment

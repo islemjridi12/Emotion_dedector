@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/391292811735820099/b22372b381864f7ea2f4f59104366482/artifacts
+end_time: 1764174224372
+entry_point_name: ''
+experiment_id: '391292811735820099'
+lifecycle_stage: active
+run_id: b22372b381864f7ea2f4f59104366482
+run_name: welcoming-calf-308
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1764174224156
+status: 3
+tags: []
+user_id: iji

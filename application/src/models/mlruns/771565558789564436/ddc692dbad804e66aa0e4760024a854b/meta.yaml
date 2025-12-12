@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Users/iji/Documents/MLOps-project-master/MLOps-project-master/application/src/models/mlruns/771565558789564436/ddc692dbad804e66aa0e4760024a854b/artifacts
+end_time: 1765458115412
+entry_point_name: ''
+experiment_id: '771565558789564436'
+lifecycle_stage: active
+run_id: ddc692dbad804e66aa0e4760024a854b
+run_name: whimsical-zebra-628
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1765458115262
+status: 3
+tags: []
+user_id: iji

@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Users/iji/Documents/MLOps-project-master/MLOps-project-master/application/src/models/mlruns/771565558789564436/62040d8700df4821b32cd16d8ec029a9/artifacts
+end_time: 1765458103269
+entry_point_name: ''
+experiment_id: '771565558789564436'
+lifecycle_stage: active
+run_id: 62040d8700df4821b32cd16d8ec029a9
+run_name: funny-cat-427
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1765458103077
+status: 3
+tags: []
+user_id: iji

@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Users/iji/Documents/MLOps-project-master/MLOps-project-master/application/src/models/mlruns/771565558789564436/58f31c0a471a458683ecb371881ae616/artifacts
+end_time: 1765457333248
+entry_point_name: ''
+experiment_id: '771565558789564436'
+lifecycle_stage: active
+run_id: 58f31c0a471a458683ecb371881ae616
+run_name: stately-fly-914
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1765457333099
+status: 3
+tags: []
+user_id: iji
