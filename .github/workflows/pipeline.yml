@@ -4,12 +4,10 @@ on:
   push:
     branches: [ "master" ]
   workflow_dispatch:
-  schedule:
-    - cron: "0 0 * * *"   # optionnel
 
 jobs:
   mlops:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted   # 🔴 CORRECTION CLÉ
 
     steps:
     # --------------------------------------------------
@@ -37,13 +35,15 @@ jobs:
         pip install dvc[s3] mlflow
 
     # --------------------------------------------------
-    # 4. Configure DVC (MinIO)
+    # 4. Configure DVC (MinIO LOCAL)
     # --------------------------------------------------
-    - name: Configure DVC MinIO
+    - name: Configure DVC MinIO (local)
+      working-directory: application
       run: |
-        dvc remote modify minio endpointurl "${{ secrets.MINIO_ENDPOINT }}"
+        dvc remote modify minio endpointurl http://localhost:9000
         dvc remote modify minio access_key_id "${{ secrets.MINIO_ACCESS_KEY }}"
         dvc remote modify minio secret_access_key "${{ secrets.MINIO_SECRET_KEY }}"
+        dvc remote modify minio use_ssl false
 
     # --------------------------------------------------
     # 5. Pull dataset from DVC
@@ -53,14 +53,14 @@ jobs:
       run: dvc pull
 
     # --------------------------------------------------
-    # 6. Run preprocessing (YouTube + cleaning)
+    # 6. Run preprocessing
     # --------------------------------------------------
-    - name: Run preprocessing (cleaned_dataset)
+    - name: Run preprocessing
+      working-directory: application
       run: |
         python src/data_ingestion/youtube_comments/main.py
         python src/scripts/main.py
 
-        # Track cleaned dataset with DVC
         dvc add data/cleaned_dataset.csv
         git add data/cleaned_dataset.csv.dvc
         git commit -m "Update cleaned dataset" || echo "No dataset changes"
@@ -70,12 +70,14 @@ jobs:
     # 7. Train model
     # --------------------------------------------------
     - name: Train model
+      working-directory: application
       run: python src/models/train_model.py
 
     # --------------------------------------------------
     # 8. Track trained model with DVC
     # --------------------------------------------------
     - name: Track model with DVC
+      working-directory: application
       run: |
         dvc add src/models/emotion_classifier_pipe_lr.pkl
         git add src/models/emotion_classifier_pipe_lr.pkl.dvc
