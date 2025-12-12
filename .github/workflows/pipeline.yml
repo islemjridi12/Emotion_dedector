@@ -30,36 +30,44 @@ jobs:
     # 3. Install dependencies
     # --------------------------------------------------
     - name: Install dependencies
+      working-directory: application
       run: |
-        pip install --upgrade pip
+        python -m pip install --upgrade pip
         pip install dvc[s3] mlflow
         pip install -r requirements.txt
 
     # --------------------------------------------------
-    # 4. Configure DVC (MinIO)
+    # 4. Configure DVC MinIO
     # --------------------------------------------------
     - name: Configure DVC MinIO
+      working-directory: application
       run: |
+        dvc remote add -f minio s3://mlops-data
         dvc remote modify minio endpointurl ${{ secrets.MINIO_ENDPOINT }}
         dvc remote modify minio access_key_id ${{ secrets.MINIO_ACCESS_KEY }}
         dvc remote modify minio secret_access_key ${{ secrets.MINIO_SECRET_KEY }}
+        dvc remote modify minio region us-east-1
+        dvc remote default minio
 
     # --------------------------------------------------
     # 5. Pull dataset
     # --------------------------------------------------
     - name: DVC pull
+      working-directory: application
       run: dvc pull
 
     # --------------------------------------------------
     # 6. Train model
     # --------------------------------------------------
     - name: Train model
+      working-directory: application
       run: python src/models/train_model.py
 
     # --------------------------------------------------
     # 7. Track model with DVC
     # --------------------------------------------------
     - name: Track model with DVC
+      working-directory: application
       run: |
         dvc add src/models/emotion_classifier_pipe_lr.pkl
         git add src/models/emotion_classifier_pipe_lr.pkl.dvc
@@ -70,8 +78,7 @@ jobs:
     # 8. Docker build
     # --------------------------------------------------
     - name: Build Docker image
-      run: |
-        docker build -t emotion-app .
+      run: docker build -t emotion-app ./application
 
     # --------------------------------------------------
     # 9. Push Docker image to Nexus
