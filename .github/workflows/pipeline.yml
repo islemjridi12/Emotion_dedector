@@ -1,20 +1,29 @@
 name: MLOps – Train, Build & Publish Image
+
 on:
   push:
     branches:
       - master
   schedule:
-    - cron: "0 2 * * 1"  # Every Monday at 02:00
+    - cron: "0 2 * * 1"
   workflow_dispatch:
+
+permissions:
+  contents: write
+
 jobs:
   mlops:
     runs-on: self-hosted
+
     steps:
     # --------------------------------------------------
     # 1. Checkout
     # --------------------------------------------------
     - name: Checkout repository
       uses: actions/checkout@v3
+      with:
+        persist-credentials: true
+
     # --------------------------------------------------
     # 1.1 Configure Git identity
     # --------------------------------------------------
@@ -22,13 +31,15 @@ jobs:
       shell: powershell
       run: |
         git config --global user.email "actions@github.com"
-        git config --global user.name "GitHub Actions"
+        git config --global user.name "actions-user"
+
     # --------------------------------------------------
     # 2. Check Python
     # --------------------------------------------------
     - name: Check Python version
       shell: powershell
       run: python --version
+
     # --------------------------------------------------
     # 3. Install dependencies
     # --------------------------------------------------
@@ -39,10 +50,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install dvc[s3] mlflow
+
     # --------------------------------------------------
-    # 4. Configure DVC (MinIO LOCAL)
+    # 4. Configure DVC (MinIO)
     # --------------------------------------------------
-    - name: Configure DVC MinIO (local)
+    - name: Configure DVC MinIO
       working-directory: application
       shell: powershell
       run: |
@@ -50,70 +62,99 @@ jobs:
         dvc remote modify minio access_key_id "${{ secrets.MINIO_ACCESS_KEY }}"
         dvc remote modify minio secret_access_key "${{ secrets.MINIO_SECRET_KEY }}"
         dvc remote modify minio use_ssl false
+
     # --------------------------------------------------
-    # 5. Pull dataset from DVC
+    # 5. Pull dataset
     # --------------------------------------------------
     - name: DVC pull
       working-directory: application
       shell: powershell
       run: dvc pull
+
     # --------------------------------------------------
     # 6. Preprocessing + track dataset
     # --------------------------------------------------
-    - name: Run preprocessing
+    - name: Preprocess data
       working-directory: application
       shell: powershell
       run: |
         python src/data_ingestion/youtube_comments/main.py
         python src/scripts/main.py
+
         dvc add data/cleaned_dataset.csv
         git add data/cleaned_dataset.csv.dvc
-        git commit -m "Update cleaned dataset"
-        if (-not $?) { Write-Host "No dataset changes" }
+
+        git commit -m "CI: update dataset [skip ci]"
+        if ($LASTEXITCODE -eq 0) {
+          git push
+        } else {
+          Write-Host "No dataset changes"
+        }
+
         dvc push
+
     # --------------------------------------------------
-    # 7. Train model
+    # 7. Train model (writes metrics_new.json)
     # --------------------------------------------------
     - name: Train model
       working-directory: application
       shell: powershell
       run: python src/models/train_model.py
+
     # --------------------------------------------------
-    # 8. Track trained model with DVC
+    # 8. Track trained model
     # --------------------------------------------------
-    - name: Track trained model with DVC
+    - name: Track model
       working-directory: application
       shell: powershell
       run: |
         dvc add src/models/emotion_classifier_pipe_lr.pkl
         git add src/models/emotion_classifier_pipe_lr.pkl.dvc
-        git commit -m "Update trained model"
-        if (-not $?) { Write-Host "No model changes" }
+
+        git commit -m "CI: update model [skip ci]"
+        if ($LASTEXITCODE -eq 0) {
+          git push
+        } else {
+          Write-Host "No model changes"
+        }
+
         dvc push
+
     # --------------------------------------------------
-    # 9. Compare model performance (F1-score)
+    # 9. Compare F1 & update metrics.json ONLY if improved
     # --------------------------------------------------
-    - name: Compare model performance
+    - name: Compare F1-score
       id: compare
       working-directory: application
       shell: powershell
       run: |
-        $new = (Get-Content metrics.json | ConvertFrom-Json).f1_score
-        git checkout HEAD~1 -- metrics.json.dvc
-        dvc pull
-        $old = (Get-Content metrics.json | ConvertFrom-Json).f1_score
+        $new = (Get-Content metrics_new.json | ConvertFrom-Json).f1_score
+
+        if (Test-Path metrics.json) {
+          $old = (Get-Content metrics.json | ConvertFrom-Json).f1_score
+        } else {
+          $old = 0
+        }
+
         Write-Host "Old F1: $old"
         Write-Host "New F1: $new"
-        if ($new -gt ($old + 0.01)) {
-          Write-Host "Model improved → build allowed"
-          echo "build=true" >> $env:GITHUB_OUTPUT
+
+        if ($new -gt $old) {
+          Write-Host "F1 improved → updating metrics.json"
+
+          Copy-Item metrics_new.json metrics.json -Force
+          git add metrics.json
+          git commit -m "CI: update metrics (F1 improved) [skip ci]"
+          git push
+
+          "build=true" | Out-File -Append -FilePath $env:GITHUB_OUTPUT
         } else {
-          Write-Host "Model NOT improved → build skipped"
-          echo "build=false" >> $env:GITHUB_OUTPUT
+          Write-Host "F1 not improved → skip build"
+          "build=false" | Out-File -Append -FilePath $env:GITHUB_OUTPUT
         }
-        git checkout -- metrics.json.dvc
+
     # --------------------------------------------------
-    # 10. Build Docker image (CONDITIONAL)
+    # 10. Build Docker image (conditional)
     # --------------------------------------------------
     - name: Build Docker image
       if: steps.compare.outputs.build == 'true'
@@ -124,15 +165,17 @@ jobs:
           -t emotion-app `
           -f docker/Dockerfile `
           .
+
     # --------------------------------------------------
-    # 11. Push Docker image to Nexus (CONDITIONAL)
+    # 11. Push Docker image (conditional)
     # --------------------------------------------------
-    - name: Push Docker image to Nexus (LOCAL)
+    - name: Push Docker image
       if: steps.compare.outputs.build == 'true'
       shell: powershell
       run: |
         echo "${{ secrets.NEXUS_PASSWORD }}" | docker login localhost:8091 `
           --username "${{ secrets.NEXUS_USER }}" `
           --password-stdin
+
         docker tag emotion-app localhost:5000/emotion-app:${{ github.sha }}
         docker push localhost:5000/emotion-app:${{ github.sha }}

@@ -33,6 +33,7 @@ from sklearn.metrics import (
 import joblib
 import mlflow
 import mlflow.sklearn
+import json
 
 
 # =========================
@@ -50,6 +51,7 @@ BASE_DIR = Path(__file__).resolve().parents[2]
 
 DATA_PATH = BASE_DIR / "data" / "cleaned_dataset.csv"
 MODEL_PATH = BASE_DIR / "src" / "models" / "emotion_classifier_pipe_lr.pkl"
+TEMP_METRICS_PATH = BASE_DIR / "metrics_new.json"
 
 print(f"[INFO] Loading dataset from: {DATA_PATH}")
 
@@ -127,6 +129,18 @@ with mlflow.start_run():
     precision = precision_score(y_test, preds, average="weighted")
     recall = recall_score(y_test, preds, average="weighted")
     f1 = f1_score(y_test, preds, average="weighted")
+    
+    metrics = {
+        "accuracy": float(accuracy),
+        "precision": float(precision),
+        "recall": float(recall),
+        "f1_score": float(f1),
+    }
+
+    with open(TEMP_METRICS_PATH, "w") as f:
+     json.dump(metrics, f, indent=2)
+
+    mlflow.log_artifact(METRICS_PATH)
 
     mlflow.log_metric("accuracy", accuracy)
     mlflow.log_metric("precision", precision)
