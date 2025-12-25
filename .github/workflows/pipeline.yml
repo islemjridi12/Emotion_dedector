@@ -1,6 +1,10 @@
 name: MLOps – Train, Build & Publish Image
 
 on:
+
+  push:
+    branches:
+      - master
   schedule:
     - cron: "0 2 * * 1"  # Every Monday at 02:00
   workflow_dispatch:
