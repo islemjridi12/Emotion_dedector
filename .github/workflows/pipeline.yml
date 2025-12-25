@@ -1,8 +1,8 @@
 name: MLOps – Train, Build & Publish Image
 
 on:
-  push:
-    branches: [ "master" ]
+  schedule:
+    - cron: "0 2 * * 1"  # Every Monday at 02:00
   workflow_dispatch:
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
         git config --global user.name "GitHub Actions"
 
     # --------------------------------------------------
-    # 2. Check Python (system Python)
+    # 2. Check Python
     # --------------------------------------------------
     - name: Check Python version
       shell: powershell
@@ -64,7 +64,7 @@ jobs:
       run: dvc pull
 
     # --------------------------------------------------
-    # 6. Run preprocessing + track cleaned dataset
+    # 6. Preprocessing + track dataset
     # --------------------------------------------------
     - name: Run preprocessing
       working-directory: application
@@ -76,11 +76,7 @@ jobs:
         dvc add data/cleaned_dataset.csv
         git add data/cleaned_dataset.csv.dvc
 
-        git commit -m "Update cleaned dataset"
-        if ($LASTEXITCODE -ne 0) {
-          Write-Host "No dataset changes"
-        }
-
+        git commit -m "Update cleaned dataset" || echo "No dataset changes"
         dvc push
 
     # --------------------------------------------------
@@ -101,17 +97,41 @@ jobs:
         dvc add src/models/emotion_classifier_pipe_lr.pkl
         git add src/models/emotion_classifier_pipe_lr.pkl.dvc
 
-        git commit -m "Update trained model"
-        if ($LASTEXITCODE -ne 0) {
-          Write-Host "No model changes"
-        }
-
+        git commit -m "Update trained model" || echo "No model changes"
         dvc push
 
     # --------------------------------------------------
-    # 9. Build Docker image (Dockerfile correct)
+    # 9. Compare model performance (F1-score)
+    # --------------------------------------------------
+    - name: Compare model performance
+      id: compare
+      working-directory: application
+      shell: powershell
+      run: |
+        $new = (Get-Content metrics.json | ConvertFrom-Json).f1_score
+
+        git checkout HEAD~1 -- metrics.json.dvc
+        dvc pull
+        $old = (Get-Content metrics.json | ConvertFrom-Json).f1_score
+
+        Write-Host "Old F1: $old"
+        Write-Host "New F1: $new"
+
+        if ($new -gt ($old + 0.01)) {
+          Write-Host "Model improved → build allowed"
+          echo "build=true" >> $env:GITHUB_OUTPUT
+        } else {
+          Write-Host "Model NOT improved → build skipped"
+          echo "build=false" >> $env:GITHUB_OUTPUT
+        }
+
+        git checkout -- metrics.json.dvc
+
+    # --------------------------------------------------
+    # 10. Build Docker image (CONDITIONAL)
     # --------------------------------------------------
     - name: Build Docker image
+      if: steps.compare.outputs.build == 'true'
       working-directory: application
       shell: powershell
       run: |
@@ -121,9 +141,10 @@ jobs:
           .
 
     # --------------------------------------------------
-    # 10. Push Docker image to Nexus LOCAL
+    # 11. Push Docker image to Nexus (CONDITIONAL)
     # --------------------------------------------------
     - name: Push Docker image to Nexus (LOCAL)
+      if: steps.compare.outputs.build == 'true'
       shell: powershell
       run: |
         echo "${{ secrets.NEXUS_PASSWORD }}" | docker login localhost:8091 `
@@ -132,4 +153,3 @@ jobs:
 
         docker tag emotion-app localhost:5000/emotion-app:${{ github.sha }}
         docker push localhost:5000/emotion-app:${{ github.sha }}
-
