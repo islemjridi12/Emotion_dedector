@@ -140,7 +140,7 @@ with mlflow.start_run():
     with open(TEMP_METRICS_PATH, "w") as f:
      json.dump(metrics, f, indent=2)
 
-    mlflow.log_artifact(METRICS_PATH)
+    mlflow.log_artifact(TEMP_METRICS_PATH)
 
     mlflow.log_metric("accuracy", accuracy)
     mlflow.log_metric("precision", precision)
